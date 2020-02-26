@@ -39,8 +39,7 @@ let model = TransformerLM(reader: reader, config: config, scope: "model")
 // Load existing token mappings.
 let encoderFile = temporaryDirectory.appendingPathComponent("encoder.json")
 let encoderData = try Data(contentsOf: encoderFile)
-let tokenToID: [String: Int32] = try JSONDecoder().decode([String: Int32].self, from: encoderData)
-let IDToToken = [Int32: String](uniqueKeysWithValues: tokenToID.map { ($1, $0) })
+let tokenToID: Bimap<String, Int32> = try Bimap(JSONDecoder().decode([String: Int32].self, from: encoderData))
 
 // Create a byte pair encoder with the loaded token mappings.
 let vocabulary = try (Vocabulary(fromJSONFile: encoderFile))
@@ -98,7 +97,7 @@ for _ in 0..<100 {
 
     var decodedToken: String
     let ID: Int32 = Int32(tokens[0][0])!
-    if let token: String = IDToToken[ID] {
+    if let token: String = tokenToID.key(ID) {
         decodedToken = BytePairEncoder.decode(token: token)
     } else {
         decodedToken = "ID \(ID) not found."
