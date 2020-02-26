@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import ModelSupport
 import Foundation
 
 public struct BytePairEncoder {
@@ -133,9 +134,8 @@ extension BytePairEncoder {
         return try! NSRegularExpression(pattern: "(?:\(escapedGlossary))")
     }()
 
-
     // TODO: Add documentation.
-    internal static let bytesToUnicode: [UInt8: UnicodeScalar] = {
+    internal static let bytesToUnicode: Bimap<UInt8, UnicodeScalar> = {
         var bytes = [UInt8](33...126) + [UInt8](161...172) + [UInt8](174...255)
         var characters = bytes.map(UInt32.init)
         var offset = UInt32(0)
@@ -146,14 +146,11 @@ extension BytePairEncoder {
                 offset += 1
             }
         }
-        return [UInt8: UnicodeScalar](
-            uniqueKeysWithValues: zip(bytes, characters.map { UnicodeScalar($0)! }))
-    }()
 
-    // The inverse of bytesToUnicode.
-    internal static let unicodeToBytes: [UnicodeScalar: UInt8] = {
-        [UnicodeScalar: UInt8](
-            uniqueKeysWithValues: BytePairEncoder.bytesToUnicode.map { ($1, $0) })
+        let bytesToUnicodeDict = [UInt8: UnicodeScalar](
+            uniqueKeysWithValues: zip(bytes, characters.map { UnicodeScalar($0)! }))
+
+        return Bimap(bytesToUnicodeDict)
     }()
 
     /// Recursively splits `token` into smaller units (by reversing BPE merges) until all units
@@ -263,7 +260,7 @@ extension BytePairEncoder {
         var buffer = [UInt8]()
 
         for scalar in token.unicodeScalars {
-            buffer.append(BytePairEncoder.unicodeToBytes[scalar]!)
+            buffer.append(BytePairEncoder.bytesToUnicode.key(scalar)!)
         }
 
         return String(bytes: buffer, encoding: .utf8)!
