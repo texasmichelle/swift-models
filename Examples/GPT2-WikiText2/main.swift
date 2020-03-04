@@ -21,7 +21,7 @@ var gpt = try GPT2()
 var model = gpt.model
 
 let dataset = WikiText2()
-let trainingBatcher = Batcher(on: dataset.trainingDataset, batchSize: 4)
+let trainingBatcher = Batcher(on: dataset.trainingDataset, batchSize: 1)
 
 print("Dataset acquired.")
 
@@ -35,20 +35,23 @@ for epoch in 1...10 {
     var trainingBatchCount = 0
     for batch in trainingBatcher.sequenced() {
         let (labels, images) = (batch.first, batch.second)
-        // let (loss, gradients) = valueWithGradient(at: model) { model -> Tensor<Float> in
+        let (loss, gradients) = valueWithGradient(at: model) { model -> Tensor<Float> in
             let logits = model(images)
-            let loss = softmaxCrossEntropy(logits: logits, labels: labels)
-        // }
+            let shape = logits.shape
+            return softmaxCrossEntropy(logits:
+            logits.reshaped(to: [shape[0] * shape[1], shape[2]]),
+            labels: labels.reshaped(to: [shape[0] * shape[1]]))
+        }
         trainingLossSum += loss.scalarized()
         trainingBatchCount += 1
-        // optimizer.update(&model, along: gradients)
+        optimizer.update(&model, along: gradients)
+        print(loss.scalarized())
     }
 
     print("[Epoch \(epoch)]")
 }
-
 /*
-for _ in 0..<100 {
+for _ in 0..<1 {
     do {
       try print(gpt.generate(), terminator: "")
     } catch {
@@ -56,4 +59,4 @@ for _ in 0..<100 {
     }
 }
 print()
-*/
+// */
