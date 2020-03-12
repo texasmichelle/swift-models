@@ -42,6 +42,8 @@ for epoch in 1...10 {
     var trainingBatchCount = 0
     for batch in trainingBatcher.sequenced() {
         let (documents, labels) = (batch.first, batch.second)
+        // TODO: Fix batching so that sizes are always equal. For now, skip this batch.
+        if documents.shape[1] < sequenceLength { continue }
         let (loss, gradients) = valueWithGradient(at: gpt.model) { model -> Tensor<Float> in
             let logits = model(documents)
             let shape = logits.shape
@@ -62,6 +64,8 @@ for epoch in 1...10 {
     var totalGuessCount = 0
     for batch in validationBatcher.sequenced() {
         let (documents, labels) = (batch.first, batch.second)
+        // TODO: Fix batching so that sizes are always equal. For now, skip this batch.
+        if documents.shape[1] < sequenceLength { continue }
         let logits = gpt.model(documents)
         let shape = logits.shape
         testLossSum += softmaxCrossEntropy(
