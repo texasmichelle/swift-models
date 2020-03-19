@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#if !canImport(x10_tensor)
 import Foundation
 import TensorFlow
 import Datasets
@@ -895,3 +896,4 @@ extension Vocabulary {
         self.init(tokensToIds: tokensToIds)
     }
 }
+#endif

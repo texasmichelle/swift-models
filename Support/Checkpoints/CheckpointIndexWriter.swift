@@ -13,7 +13,12 @@
 // limitations under the License.
 
 import Foundation
+#if canImport(x10_tensor)
+import x10_device
+import x10_tensor
+#else
 import TensorFlow
+#endif
 
 class CheckpointIndexWriter {
     // TODO: Extend handling to different tensor types.

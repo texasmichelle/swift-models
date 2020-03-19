@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import Foundation
-import TensorFlow
 
 // ThreadSafe and concurrentMap based on https://talk.objc.io/episodes/S01E90-concurrent-map
 // TODO: build a proper separate module that does the parallel processing

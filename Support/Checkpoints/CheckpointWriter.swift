@@ -13,7 +13,12 @@
 // limitations under the License.
 
 import Foundation
+#if canImport(x10_tensor)
+import x10_device
+import x10_tensor
+#else
 import TensorFlow
+#endif
 
 /// A Swift-native TensorFlow v2 checkpoint writer. This writer has no dependencies
 /// on the TensorFlow runtime or libraries.

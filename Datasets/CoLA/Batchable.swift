@@ -14,7 +14,13 @@
 
 // Adapted from: https://github.com/eaplatanios/nca/blob/master/Sources/NCA/Utilities/Protocols.swift
 
+#if canImport(x10_tensor)
+import x10_device
+import x10_tensor
+#else
 import TensorFlow
+#endif
+
 public protocol Batchable {
   static func batch(_ values: [Self]) -> Self
 }
@@ -28,9 +34,6 @@ extension Tensor: Batchable {
 extension KeyPathIterable {
   public static func batch(_ values: [Self]) -> Self {
     var result = values[0]
-    for kp in result.recursivelyAllWritableKeyPaths(to: Tensor<UInt8>.self) {
-      result[keyPath: kp] = Tensor.batch(values.map { $0[keyPath: kp] })
-    }
     for kp in result.recursivelyAllWritableKeyPaths(to: Tensor<Int32>.self) {
       result[keyPath: kp] = Tensor.batch(values.map { $0[keyPath: kp] })
     }
@@ -42,14 +45,6 @@ extension KeyPathIterable {
     }
     for kp in result.recursivelyAllWritableKeyPaths(to: Tensor<Double>.self) {
       result[keyPath: kp] = Tensor.batch(values.map { $0[keyPath: kp] })
-    }
-    for kp in result.recursivelyAllWritableKeyPaths(to: Tensor<UInt8>?.self) {
-      let keyPathValues = values.map { $0[keyPath: kp] }
-      if keyPathValues[0] != nil {
-        result[keyPath: kp] = Tensor.batch(keyPathValues.map { $0! })
-      } else {
-        result[keyPath: kp] = nil
-      }
     }
     for kp in result.recursivelyAllWritableKeyPaths(to: Tensor<Int32>?.self) {
       let keyPathValues = values.map { $0[keyPath: kp] }

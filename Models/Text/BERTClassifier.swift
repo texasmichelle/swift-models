@@ -15,6 +15,7 @@
 // Adapted from: https://gist.github.com/eaplatanios/eae9c1b4141e961c949d6f2e7d424c6f
 // Untested.
 
+#if !canImport(x10_tensor)
 import Datasets
 import ModelSupport
 import TensorFlow
@@ -40,3 +41,4 @@ public struct BERTClassifier: Module, Regularizable {
     dense(bert(input)[0..., 0])
   }
 }
+#endif

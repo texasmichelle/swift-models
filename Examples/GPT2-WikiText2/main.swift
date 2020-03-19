@@ -14,15 +14,19 @@
 
 import Batcher
 import Datasets
-import TensorFlow
+import x10_tensor
+import x10_device
 import TextModels
 
+print ("Loading GPT2...")
 var gpt = try GPT2()
+print ("GPT2 loaded.")
 
 let sequenceLength = gpt.contextSize
-let trainingBatchSize = 8
+let trainingBatchSize = 2
 let validationBatchSize = 4
 let numWorkers = 8
+print("Loading WikiText2...")
 // Use default WikiText2 dataset.
 let dataset = TextUnsupervised(bpe: gpt.bpe, variant: .wikiText2,
     trainingBatchSize: trainingBatchSize, validationBatchSize: validationBatchSize,
@@ -52,11 +56,19 @@ for epoch in 1...10 {
                 labels: labels.reshaped(to: [shape[0] * shape[1]])
             )
         }
+        print("loss: \(loss)")
         trainingLossSum += loss.scalarized()
         trainingBatchCount += 1
         optimizer.update(&gpt.model, along: gradients)
     }
+    print(
+        """
+        [Epoch \(epoch)] \
+        Loss: \(trainingLossSum)
+        """
+    )
 
+/*
     Context.local.learningPhase = .inference
     var testLossSum: Float = 0
     var testBatchCount = 0
@@ -88,4 +100,5 @@ for epoch in 1...10 {
         Loss: \(testLossSum / Float(testBatchCount))
         """
     )
+*/
 }

@@ -12,7 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//#if canImport(x10_tensor)
+//import x10_device
+//import x10_tensor
+//#else
 import TensorFlow
+//#endif
 import Batcher
 
 public struct LabeledExample: TensorGroup, KeyPathIterable, Collatable {
@@ -41,6 +46,7 @@ public struct LabeledExample: TensorGroup, KeyPathIterable, Collatable {
 /// `Collatable`. You can use it for most basic datasets with one tensor of inputs and one tensor of
 /// labels but you should write your own struct for more complex tasks (or if you want more descriptive
 /// names).
+/*
 public struct TensorPair<S1: TensorFlowScalar, S2: TensorFlowScalar>: Collatable, KeyPathIterable {
     public var first: Tensor<S1>
     public var second: Tensor<S2>
@@ -50,3 +56,4 @@ public struct TensorPair<S1: TensorFlowScalar, S2: TensorFlowScalar>: Collatable
         self.second = second
     }
 }
+*/

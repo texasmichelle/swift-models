@@ -13,7 +13,12 @@
 // limitations under the License.
 
 import Foundation
+#if canImport(x10_tensor)
+import x10_device
+import x10_tensor
+#else
 import TensorFlow
+#endif
 
 /// Returns a 3-D attention mask that correspond to the 2-D mask of the provided text batch.
 ///

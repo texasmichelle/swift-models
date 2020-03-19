@@ -12,7 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#if canImport(x10_tensor)
+import x10_device
+import x10_tensor
+#else
 import TensorFlow
+#endif
 
 struct TimeDistributed: Layer {
     var dense: Dense<Float>
@@ -116,9 +121,23 @@ func causallyMasked(_ dotProducts: Tensor<Float>, enable: Bool = false) -> Tenso
         return dotProducts
     }
     let (queryTimeSteps, keyTimeSteps) = (dotProducts.shape[1], dotProducts.shape[2])
-    let ones = Tensor<Float>(ones: [1, queryTimeSteps, keyTimeSteps])
-    let mask = ones.bandPart(
-        subdiagonalCount: -1, superdiagonalCount: queryTimeSteps - keyTimeSteps)
+// TODO: Re-enable this and remove workaround when matrixBandPart has been implemented as an op.
+//    let ones = Tensor<Float>(ones: [1, queryTimeSteps, keyTimeSteps])
+//    print("Ones: \(ones), shape: \(ones.shape)")
+//    let mask = ones.bandPart(
+//        subdiagonalCount: -1, superdiagonalCount: queryTimeSteps - keyTimeSteps)
+//    print("Mask: \(mask), shape: \(mask.shape)")
+    
+    var maskScalars = [Float](repeating: 1.0, count: queryTimeSteps * keyTimeSteps)
+    for queryTimeStep in 0..<queryTimeSteps {
+        for keyTimeStep in 0..<keyTimeSteps {
+            if keyTimeStep > queryTimeStep {
+                maskScalars[queryTimeStep * keyTimeSteps + keyTimeStep] = 0.0
+            }
+        }
+    }
+    let mask = Tensor<Float>(shape: [1, queryTimeSteps, keyTimeSteps], scalars: maskScalars)
+    
     return dotProducts * mask - 1e10 * (1 - mask)
 }
 

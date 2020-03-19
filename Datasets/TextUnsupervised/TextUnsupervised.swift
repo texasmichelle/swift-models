@@ -15,7 +15,10 @@
 import Batcher
 import Foundation
 import ModelSupport
-import TensorFlow
+#if canImport(x10_tensor)
+import x10_tensor
+import x10_device
+#endif
 
 public enum TextUnsupervisedVariant: String {
     /// - Source: [Einstein AI WikiText-103](

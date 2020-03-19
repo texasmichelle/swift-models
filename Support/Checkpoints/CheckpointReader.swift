@@ -20,7 +20,12 @@
 // shards to obtain their raw bytes.
 
 import Foundation
+#if canImport(x10_tensor)
+import x10_device
+import x10_tensor
+#else
 import TensorFlow
+#endif
 
 /// A Swift-native TensorFlow v2 checkpoint reader that can download all checkpoint files from 
 /// remote locations and store them in a local temporary directory. This reader has no dependencies
@@ -158,7 +163,7 @@ open class CheckpointReader {
         case .dtUint32: return UInt32.self
         case .dtInt64: return Int64.self
         case .dtUint64: return UInt64.self
-        case .dtBfloat16: return BFloat16.self
+        //case .dtBfloat16: return BFloat16.self
         case .dtFloat: return Float.self
         case .dtDouble: return Double.self
         case .dtString: return String.self

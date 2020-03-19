@@ -14,7 +14,12 @@
 
 import Foundation
 import ModelSupport
+#if canImport(x10_tensor)
+import x10_device
+import x10_tensor
+#else
 import TensorFlow
+#endif
 
 public class GPT2 {
     public static let remoteCheckpoint: URL =
@@ -52,6 +57,7 @@ public class GPT2 {
             let FS: FileManager = FileManager.default
             let storage: URL = FS.temporaryDirectory.appendingPathComponent("Transformer")
 
+            print("Reading from checkpoint...")
             let reader: CheckpointReader = try CheckpointReader(
                 checkpointLocation: checkpoint,
                 modelName: "Transformer",
@@ -68,6 +74,7 @@ public class GPT2 {
                 TransformerLMConfig.self,
                 from: configuration.data)
 
+            print("Initializing a model...")
             // Initialize a model with the given config.
             model = TransformerLM(reader: reader, config: parameters, scope: "model")
 
@@ -83,6 +90,7 @@ public class GPT2 {
                 mergesFileURL, Data(contentsOf: mergesFileURL)
             )
 
+            print("Creating a byte pair encoder...")
             // Create a bytepair encoder with loaded token mappings.
             bpe = try BytePairEncoder(
                 vocabularyFile: vocabulary.file, mergesFile: merges.file)

@@ -1,4 +1,25 @@
+#if canImport(x10_tensor)
+import x10_tensor
+import x10_device
+#else
 import TensorFlow
+#endif
+
+/// A generic tuple of two tensors `Tensor`.
+///
+/// - Note: `TensorPair` has a generic name and provides little semantic information, to conform to
+/// `Collatable`. You can use it for most basic datasets with one tensor of inputs and one tensor of
+/// labels but you should write your own struct for more complex tasks (or if you want more descriptive
+/// names).
+public struct TensorPair<S1: TensorFlowScalar, S2: TensorFlowScalar>: Collatable, KeyPathIterable {
+    public var first: Tensor<S1>
+    public var second: Tensor<S2>
+
+    public init(first: Tensor<S1>, second: Tensor<S2>) {
+        self.first = first
+        self.second = second
+    }
+}
 
 /// A dataset suitable for language modeling.
 ///
@@ -113,6 +134,8 @@ extension LanguageModelDataset: Collection {
     return text
   }
 }
+
+import Batcher
 
 /// The sampleIndices function to use in conjunction with a `LanguageModelDataset` in a `Batcher`.
 /// Will shuffle the dataset in place instead of the indices (like the default function does).

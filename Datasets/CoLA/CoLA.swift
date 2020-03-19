@@ -21,7 +21,12 @@
 
 import Foundation
 import ModelSupport
+#if canImport(x10_tensor)
+import x10_tensor
+import x10_device
+#else
 import TensorFlow
+#endif
 
 public struct CoLA {
     public let directoryURL: URL

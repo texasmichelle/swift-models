@@ -12,7 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#if canImport(x10_tensor)
+import x10_tensor
+import x10_device
+#else
 import TensorFlow
+#endif
 
 /// An embedding layer.
 ///
