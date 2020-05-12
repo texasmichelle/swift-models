@@ -85,7 +85,8 @@ public class GPT2 {
 
             // Create a bytepair encoder with loaded token mappings.
             bpe = try BytePairEncoder(
-                vocabularyFile: vocabulary.file, mergesFile: merges.file)
+                vocabularyFile: vocabulary.file, mergesFile: merges.file,
+                variant: .gpt2)
             endOfTextId = bpe.vocabulary.id(forToken: endOfText)!
 
             print("GPT-2 loaded from checkpoint successfully.")
@@ -112,7 +113,8 @@ public class GPT2 {
             // Empty vocab and merges.
             let vocabulary = Vocabulary(tokensToIds: [endOfText: endOfTextId])
             let mergePairs = [BytePairEncoder.Pair: Int]()
-            bpe = BytePairEncoder(vocabulary: vocabulary, mergePairs: mergePairs)
+            bpe = BytePairEncoder(
+                vocabulary: vocabulary, mergePairs: mergePairs, variant: .gpt2)
         }
 
         contextSize = parameters.contextSize
@@ -134,7 +136,7 @@ public class GPT2 {
     }
 
     public func embedding(for string: String) -> Tensor<Int32> {
-        let tokens = bpe.encode(token: string, variant: .gpt2)
+        let tokens = bpe.encode(token: string)
         // TODO(michellecasbon): Decide how to prevent OOV or choose a better ID (probably not 0).
         let ids = tokens.map { Int32(bpe.vocabulary.id(forToken: $0) ?? 0) }
         return Tensor(shape: [1, ids.count], scalars: ids)

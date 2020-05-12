@@ -22,7 +22,7 @@ final class TextUnsupervisedTests: XCTestCase {
     func testCreateWikiText103WithBpe() {
         do {
             let gpt2 = try GPT2()
-            let dataset = TextUnsupervised(bpe: gpt2.bpe, variant: .wikiText103)
+            let dataset = TextUnsupervised(encoder: gpt2.bpe)
 
             var totalCount = 0
             for example in dataset.trainingDataset {
@@ -61,7 +61,7 @@ final class TextUnsupervisedTests: XCTestCase {
     func testCreateWikiText2WithBpe() {
         do {
             let gpt2 = try GPT2()
-            let dataset = TextUnsupervised(bpe: gpt2.bpe, variant: .wikiText2)
+            let dataset = TextUnsupervised(encoder: gpt2.bpe)
 
             var totalCount = 0
             for example in dataset.trainingDataset {

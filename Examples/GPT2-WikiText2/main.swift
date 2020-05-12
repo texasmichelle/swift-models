@@ -24,7 +24,7 @@ let trainingBatchSize = 2
 let validationBatchSize = 2
 let numWorkers = 1
 // Use default WikiText2 dataset.
-let dataset = TextUnsupervised(bpe: gpt.bpe, variant: .wikiText2,
+let dataset = TextUnsupervised(encoder: gpt.bpe,
     trainingBatchSize: trainingBatchSize, validationBatchSize: validationBatchSize,
     sequenceLength: sequenceLength)
 let trainingBatcher = Batcher(

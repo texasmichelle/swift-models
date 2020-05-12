@@ -14,11 +14,14 @@
 
 import Foundation
 
-public struct BytePairEncoder {
+public struct BytePairEncoder: TextEncoder {
+    // TODO: Convert vocabulary to dictionary
+    public var dictionary: BijectiveDictionary<String, Int32>
     public let vocabulary: Vocabulary
     public let mergePairs: [Pair: Int]
     public let reversedMergePairs: [String: Pair]
     public let useCache: Bool
+    public let variant: EncoderVariant
 
     // TODO: Find a nice way to support caching.
     /// A cache used to store encoded tokens and thus speed up encoding.
@@ -26,9 +29,12 @@ public struct BytePairEncoder {
 
     public init(
         vocabularyFile: URL, mergesFile: URL,
-        encoding: String.Encoding = .utf8
+        encoding: String.Encoding = .utf8,
+        variant: EncoderVariant = .roberta
     ) throws {
         let vocabulary: Vocabulary = try Vocabulary(fromJSONFile: vocabularyFile)
+        let vocabularyConverted = vocabulary.tokensToIds.mapValues { Int32($0) }
+        var dictionary = BijectiveDictionary(vocabularyConverted)
 
         let lines: ArraySlice<String> =
             try String(contentsOfFile: mergesFile.path, encoding: encoding)
@@ -44,10 +50,14 @@ public struct BytePairEncoder {
                     return (BytePairEncoder.Pair(String(tokens[0]), String(tokens[1])), index)
                 })
 
-        self.init(vocabulary: vocabulary, mergePairs: pairs)
+        self.init(
+            vocabulary: vocabulary, mergePairs: pairs, variant: variant)
     }
 
-    public init(vocabulary: Vocabulary, mergePairs: [Pair: Int], useCache: Bool = true) {
+    public init(
+        vocabulary: Vocabulary, mergePairs: [Pair: Int],
+        useCache: Bool = true, variant: EncoderVariant = .roberta
+    ) {
         self.vocabulary = vocabulary
         self.mergePairs = mergePairs
         self.reversedMergePairs = [String: Pair](
@@ -56,6 +66,9 @@ public struct BytePairEncoder {
             })
         self.useCache = useCache
         // self.cache = [:]
+        let vocabularyConverted = vocabulary.tokensToIds.mapValues { Int32($0) }
+        self.dictionary = BijectiveDictionary(vocabularyConverted)
+        self.variant = variant
     }
 
     /// Encodes the provided token to a sequence of BPE-coded tokens.
@@ -64,18 +77,18 @@ public struct BytePairEncoder {
     ///   - token: Token to encode.
     ///   - variant: Type of model (default: .roberta).
     /// - Returns: Array containing the BPE-coded tokens.
-    public func encode(token: String, variant: Variant? = .roberta) -> [String] {
+    public func encode(token: String) -> [String] {
         // if let cached = cache[token] { return cached }
         // let token = " " + token
         var parts = [String]()
 
-        switch variant {
+        switch self.variant {
         case .gpt2:
             // Split into parts before encoding.
             let unencodedTokens = BytePairEncoder.splittingWithDelimiters(
                 token: token,
                 glossaryRegex: BytePairEncoder.gpt2GlossaryRegex,
-                variant: .gpt2)
+                variant: self.variant)
             // Encode each token.
             let tokens = unencodedTokens.map({ BytePairEncoder.encodedToken($0) })
             // Separate each character.
@@ -86,13 +99,13 @@ public struct BytePairEncoder {
                 }
             }
             if parts.count < 2 { return parts }
-        case .roberta, .none:
+        case .roberta, .wordSeg:
             // Encode before splitting into parts.
             let encodedToken = BytePairEncoder.encodedToken(token)
             parts = BytePairEncoder.splittingWithDelimiters(
                 token: encodedToken,
                 glossaryRegex: BytePairEncoder.defaultGlossaryRegex,
-                variant: .roberta)
+                variant: self.variant)
             if parts.count < 2 { return parts }
         }
 
@@ -197,7 +210,7 @@ extension BytePairEncoder {
         token: String,
         glossaryRegex: NSRegularExpression,
         keepEmpty: Bool = false,
-        variant: Variant? = .roberta
+        variant: EncoderVariant
     ) -> [String] {
         let matches = glossaryRegex.matches(
             in: token,
@@ -215,7 +228,7 @@ extension BytePairEncoder {
                   parts.append(String(token[start..<end]))
                 }
             }
-        case .roberta, .none:
+        case .roberta, .wordSeg:
             var lastEnd = token.startIndex
             for match in matches {
                 let start = token.index(token.startIndex, offsetBy: match.range.lowerBound)
@@ -264,18 +277,7 @@ extension BytePairEncoder {
 }
 
 extension BytePairEncoder {
-    public enum Variant {
-        /// Default variant.
-        /// - Source: [RoBERTa: A Robustly Optimized BERT Pretraining Approach](
-        ///             https://arxiv.org/pdf/1907.11692.pdf).
-        case roberta
-        /// - Source: [Language Models are Unsupervised Multitask Learners](
-        ///             https://cdn.openai.com/better-language-models/
-        ///             language_models_are_unsupervised_multitask_learners.pdf).
-        case gpt2
-    }
-
-    /// Decodes the provided BPE-coded token to a sequence of tokens.
+    /// Decodes the provided encoded token to a sequence of tokens.
     ///
     /// - Parameters:
     ///   - token: BPE-coded token to decode.

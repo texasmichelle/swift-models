@@ -13,12 +13,16 @@
 // limitations under the License.
 
 import Foundation
+import ModelSupport
 
-internal struct DataSet {
+internal struct DataSet: TextEncoder {
   public let training: [CharacterSequence]
   public private(set) var testing: [CharacterSequence]?
   public private(set) var validation: [CharacterSequence]?
   public let alphabet: Alphabet
+
+  // TODO: remove temporary conformance
+  public var dictionary: BijectiveDictionary<String, Int32>
 
   private static func load(data: Data) throws -> [String] {
     guard let contents: String = String(data: data, encoding: .utf8) else {
@@ -61,6 +65,20 @@ internal struct DataSet {
     sorted.sort()
 
     return Alphabet(sorted, eos: eos, eow: eow, pad: pad)
+  }
+
+  // TODO: remove temporary conformance
+  public static func decode(token: String) -> String {
+    return "empty string"
+  }
+
+  // TODO: remove temporary conformance
+  public func encode(token: String) -> [String] {
+    let dataset: [String]? = [token]
+    if let encoded = try? Self.convertDataset(dataset, alphabet: self.alphabet) {
+      return [encoded.description]
+    }
+    return ["empty string"]
   }
 
   private static func convertDataset(_ dataset: [String], alphabet: Alphabet) throws
@@ -108,6 +126,8 @@ internal struct DataSet {
     self.training = try Self.convertDataset(training, alphabet: self.alphabet)
     self.validation = try Self.convertDataset(validation, alphabet: self.alphabet)
     self.testing = try Self.convertDataset(testing, alphabet: self.alphabet)
+
+    self.dictionary = alphabet.dictionary
   }
 
   init(training trainingData: Data, validation validationData: Data?, testing testingData: Data?)
@@ -127,5 +147,7 @@ internal struct DataSet {
     self.training = try Self.convertDataset(training, alphabet: self.alphabet)
     self.validation = try Self.convertDataset(validation, alphabet: self.alphabet)
     self.testing = try Self.convertDataset(testing, alphabet: self.alphabet)
+
+    self.dictionary = alphabet.dictionary
   }
 }
