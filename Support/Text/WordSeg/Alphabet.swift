@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import ModelSupport
 import TensorFlow
 
 /// Alphabet maps from characters in a string to Int32 representations.
@@ -23,11 +22,11 @@ import TensorFlow
 public struct Alphabet {
   public typealias Element = String
 
-  var dictionary: BijectiveDictionary<String, Int32>
+  public var dictionary: BijectiveDictionary<String, Int32>
 
-  let eos: Int32
-  let eow: Int32
-  let pad: Int32
+  public let eos: Int32
+  public let eow: Int32
+  public let pad: Int32
 
   public init<C: Collection>(_ letters: C, eos: String, eow: String, pad: String)
   where C.Element == Character {
@@ -57,7 +56,7 @@ public struct Alphabet {
     self.dictionary[pad] = self.pad
   }
 
-  var count: Int { return dictionary.count }
+  public var count: Int { return dictionary.count }
 
   subscript(key: String) -> Int32? {
     return dictionary[key]
@@ -66,7 +65,7 @@ public struct Alphabet {
 
 /// An Int32-based representation of a string to be used with the WordSeg model.
 public struct CharacterSequence: Hashable {
-  let characters: [Int32]
+  public let characters: [Int32]
   private let eos: Int32
 
   public init(_debug: Int) {
@@ -97,17 +96,17 @@ public struct CharacterSequence: Hashable {
     self.eos = alphabet.eos
   }
 
-  subscript(index: Int32) -> Int32 {
+  public subscript(index: Int32) -> Int32 {
     return characters[Int(index)]
   }
 
-  subscript(range: Range<Int>) -> ArraySlice<Int32> {
+  public subscript(range: Range<Int>) -> ArraySlice<Int32> {
     return characters[range]
   }
 
   public var count: Int { return characters.count }
-  var last: Int32? { return characters.last }
-  var tensor: Tensor<Int32> {
+  public var last: Int32? { return characters.last }
+  public var tensor: Tensor<Int32> {
     Tensor<Int32>([self.eos] + characters[0..<characters.count - 1])
   }
 }
@@ -126,9 +125,9 @@ public struct Lexicon {
   public typealias Element = CharacterSequence
 
   // TODO(marcrasi): if the value is not used to construct Tensor, switch to Int
-  var dictionary: BijectiveDictionary<CharacterSequence, Int32>
+  public var dictionary: BijectiveDictionary<CharacterSequence, Int32>
 
-  var count: Int { return dictionary.count }
+  public var count: Int { return dictionary.count }
 
   public init<C: Collection>(_ sequences: C) where C.Element == Element {
     self.dictionary = .init(zip(sequences, 0...))
@@ -137,8 +136,8 @@ public struct Lexicon {
   public init(
     from sequences: [CharacterSequence],
     alphabet: Alphabet,
-    maxLength: Int,
-    minFreq: Int
+    maxLength: Int = 10,
+    minFreq: Int = 10
   ) {
     var histogram: [ArraySlice<Int32>: Int] = [:]
 

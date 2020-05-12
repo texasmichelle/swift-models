@@ -20,6 +20,7 @@
 // This implementation is not affiliated with DeepMind and has not been
 // verified by the authors.
 
+import ModelSupport
 import TensorFlow
 
 /// SNLM
@@ -36,11 +37,11 @@ public struct SNLM: EuclideanDifferentiable, KeyPathIterable {
     public var order: Int
 
     public init(
-      ndim: Int,
-      dropoutProb: Double,
+      ndim: Int = 512,
+      dropoutProb: Double = 0.5,
       chrVocab: Alphabet,
       strVocab: Lexicon,
-      order: Int
+      order: Int = 5
     ) {
       self.ndim = ndim
       self.dropoutProb = dropoutProb

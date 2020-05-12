@@ -13,9 +13,8 @@
 // limitations under the License.
 
 import Foundation
-import ModelSupport
 
-internal struct DataSet: TextEncoder {
+public struct DataSet: TextEncoder {
   public let training: [CharacterSequence]
   public private(set) var testing: [CharacterSequence]?
   public private(set) var validation: [CharacterSequence]?
@@ -42,7 +41,7 @@ internal struct DataSet: TextEncoder {
     return strings
   }
 
-  private static func makeAlphabet(
+  public static func makeAlphabet(
     datasets training: [String],
     _ otherSequences: [String]?...,
     eos: String = "</s>",
@@ -81,12 +80,12 @@ internal struct DataSet: TextEncoder {
     return ["empty string"]
   }
 
-  private static func convertDataset(_ dataset: [String], alphabet: Alphabet) throws
+  public static func convertDataset(_ dataset: [String], alphabet: Alphabet) throws
     -> [CharacterSequence]
   {
     return try dataset.map { try CharacterSequence(alphabet: alphabet, appendingEoSTo: $0) }
   }
-  private static func convertDataset(_ dataset: [String]?, alphabet: Alphabet) throws
+  public static func convertDataset(_ dataset: [String]?, alphabet: Alphabet) throws
     -> [CharacterSequence]?
   {
     if let ds = dataset {

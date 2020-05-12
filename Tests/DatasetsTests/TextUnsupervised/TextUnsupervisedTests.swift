@@ -96,6 +96,69 @@ final class TextUnsupervisedTests: XCTestCase {
         }
         XCTAssertEqual(totalCount, 12)
     }
+
+    func testCreateWordSeg() {
+        let variant = TextUnsupervisedVariant.wordSeg
+        // TODO: Remove dir
+        let dir: URL = FileManager.default.temporaryDirectory.appendingPathComponent(
+            variant.rawValue, isDirectory: true)
+        var encoder = Encoder()
+        let dataset = TextUnsupervised(
+            encoder: encoder, variant: variant,
+            trainingBatchSize: 1, validationBatchSize: 1,
+            sequenceLength: 1)
+        var alphabet: Alphabet
+        do {
+            alphabet = try TextUnsupervised.loadAlphabet(in: dir, variant: .wordSeg)
+        } catch {
+            alphabet = dataset.alphabet
+            XCTFail("Unable to load alphabet")
+        }
+        // let encoder = Encoder()
+
+        let trainingRaw = dataset.trainingRaw
+        let trainingCharSeq: [CharacterSequence]
+        do {
+            trainingCharSeq = try DataSet.convertDataset(
+                trainingRaw, alphabet: alphabet)
+        } catch {
+            print("Unexpected error")
+            trainingCharSeq = []
+        }
+        // let lexicon = Lexicon(from: trainingCharSeq, alphabet: alphabet)
+        var lexicon: Lexicon
+        do {
+            lexicon = try TextUnsupervised.loadLexicon(in: dir, variant: .wordSeg)
+        } catch {
+            lexicon = dataset.lexicon
+            XCTFail("Unable to load alphabet")
+        }
+
+        encoder = Encoder(lexicon: lexicon, alphabet: alphabet)
+        let dataset2 = TextUnsupervised(
+            encoder: encoder, variant: variant,
+            trainingBatchSize: 1, validationBatchSize: 1,
+            sequenceLength: 1)
+
+        let modelConfig = SNLM.Parameters(
+            chrVocab: alphabet, strVocab: lexicon)
+        let wordSeg = SNLM(parameters: modelConfig)
+
+        var totalCount = 0
+        print("dataset2.trainingDataset: \(dataset2.trainingDataset.count)")
+        for example in dataset2.trainingDataset {
+//             print("example: \(example)")
+            // XCTAssertEqual(example.first.shape[0], 1024)
+            // XCTAssertEqual(example.second.shape[0], 1024)
+            totalCount += 1
+        }
+        for example in dataset2.validationDataset {
+            // XCTAssertEqual(example.first.shape[0], 1024)
+            // XCTAssertEqual(example.second.shape[0], 1024)
+            totalCount += 1
+        }
+        XCTAssertEqual(totalCount, 2)
+    }
 }
 
 extension TextUnsupervisedTests {
@@ -105,7 +168,8 @@ extension TextUnsupervisedTests {
         // ("testCreateWikiText103WithBpe", testCreateWikiText103WithBpe),
         // ("testCreateWikiText103WithoutBpe", testCreateWikiText103WithoutBpe),
 
-        ("testCreateWikiText2WithBpe", testCreateWikiText2WithBpe),
-        ("testCreateWikiText2WithoutBpe", testCreateWikiText2WithoutBpe),
+//         ("testCreateWikiText2WithBpe", testCreateWikiText2WithBpe),
+//        ("testCreateWikiText2WithoutBpe", testCreateWikiText2WithoutBpe),
+        ("testCreateWordSeg", testCreateWordSeg),
     ]
 }

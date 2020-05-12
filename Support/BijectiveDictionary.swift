@@ -23,6 +23,8 @@ public struct BijectiveDictionary<Key: Hashable, Value: Hashable> {
   /// The number of of key-value pairs in the dictionary
   public var count: Int { valueForKey.count }
 
+  public var all: [Key:Value] { valueForKey }
+
   /// Initializes the dictionary from a sequence of tuples of key and value.
   public init<T: Sequence>(_ mapping: T) where T.Element == (Key, Value) {
     valueForKey = .init(uniqueKeysWithValues: mapping)

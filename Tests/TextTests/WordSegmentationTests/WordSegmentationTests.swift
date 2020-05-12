@@ -15,6 +15,7 @@
 import XCTest
 
 @testable import TextModels
+@testable import ModelSupport
 
 class DataSetTests: XCTestCase {
   func test_DataSetLoad() {
