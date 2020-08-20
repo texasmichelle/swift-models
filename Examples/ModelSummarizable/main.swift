@@ -10,6 +10,7 @@ struct Model: ModelSummarizable {
 let model = Model()
 print(model.summary)
 
+/// In the future, this extension will be compiler-generated.
 extension Model: Structural {
   public typealias StructuralRepresentation =
     StructuralStruct<
