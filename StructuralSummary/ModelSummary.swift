@@ -9,9 +9,9 @@ public protocol ModelSummarizable {
 
 extension Dense: ModelSummarizable {
   public var summary: String {
-//    return "Dense"
     let t1 = Tensor<Float>(repeating: 0, shape: [1, 2, 3], on: Device.defaultXLA)
-    let annotated = t1.annotate("type=Tensor<Float>")
+    let annotation = "type=\(Self.self)"
+    let annotated = t1.annotate(annotation)
     return annotated.annotations
   }
 }
