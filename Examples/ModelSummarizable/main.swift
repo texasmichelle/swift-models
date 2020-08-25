@@ -2,9 +2,16 @@ import TensorFlow
 import StructuralSummary
 import StructuralCore
 
-struct Model: ModelSummarizable {
+struct Model: ModelSummarizable, Layer {
   var dense1 = Dense<Float>(inputSize: 1, outputSize: 1)
   var dense2 = Dense<Float>(inputSize: 1, outputSize: 1)
+
+  @differentiable
+  public func callAsFunction(_ input: Tensor<Float>) -> Tensor<Float> {
+    let layer1 = dense1(input)
+    let layer2 = dense2(layer1)
+    return layer2
+  }
 }
 
 let model = Model()
