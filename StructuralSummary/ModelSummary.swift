@@ -2,22 +2,25 @@ import TensorFlow
 import StructuralCore
 
 public protocol ModelSummarizable {
-  var summary: String { get }
+  func summary(inputShape: TensorShape) -> String
 }
 
 // Base cases.
 
 extension Dense: ModelSummarizable {
-  public var summary: String {
-    let t1 = Tensor<Float>(repeating: 0, shape: [1, 2, 3], on: Device.defaultXLA)
+  public func summary(inputShape: TensorShape) -> String {
+    let t1 = Tensor<Scalar>(repeating: 0, shape: inputShape, on: Device.defaultXLA)
+
+    let dense = Self.self.init(copying: self, to: Device.defaultXLA)
+    let output = dense(t1)
     let annotation = "type=\(Self.self)"
-    let annotated = t1.annotate(annotation)
+    let annotated = output.annotate(annotation)
     return annotated.annotations
   }
 }
 
 extension StructuralEmpty: ModelSummarizable {
-  public var summary: String {
+  public func summary(inputShape: TensorShape) -> String {
     return ""
   }
 }
@@ -26,28 +29,28 @@ extension StructuralEmpty: ModelSummarizable {
 
 extension StructuralProperty: ModelSummarizable 
 where Value: ModelSummarizable {
-  public var summary: String {
-    " - \(name): \(value.summary)"
+  public func summary(inputShape: TensorShape) -> String {
+    " - \(name): \(value.summary(inputShape: inputShape))"
   }
 }
 
 extension StructuralCons: ModelSummarizable
 where Value: ModelSummarizable, Next: ModelSummarizable {
-  public var summary: String {
-    "\(value.summary)\n\(next.summary)"
+  public func summary(inputShape: TensorShape) -> String {
+    "\(value.summary(inputShape: inputShape))\n\(next.summary(inputShape: inputShape))"
   }
 }
 
 extension StructuralStruct: ModelSummarizable
 where Properties: ModelSummarizable {
-  public var summary: String {
-    "\(String(describing: type))\n\(properties.summary)"
+  public func summary(inputShape: TensorShape) -> String {
+    "\(String(describing: type))\n\(properties.summary(inputShape: inputShape))"
   }
 }
 
 extension ModelSummarizable
 where Self: Structural, Self.StructuralRepresentation: ModelSummarizable {
-  public var summary: String {
-    self.structuralRepresentation.summary
+  public func summary(inputShape: TensorShape) -> String {
+    self.structuralRepresentation.summary(inputShape: inputShape)
   }
 } 

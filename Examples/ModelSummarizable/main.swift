@@ -8,7 +8,7 @@ struct Model: ModelSummarizable {
 }
 
 let model = Model()
-print(model.summary)
+print(model.summary(inputShape: [1, 1, 1, 1]))
 
 /// In the future, this extension will be compiler-generated.
 extension Model: Structural {
